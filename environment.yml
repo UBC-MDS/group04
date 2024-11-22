@@ -8,8 +8,9 @@ dependencies:
   - ipykernel
   - nb_conda_kernels
   - altair-all=5.4.*
-  - vegafusion<2
   - vega_datasets
+  - vegafusion=1.6.9
+  - vegafusion-python-embed=1.6.9
   - scipy
   - matplotlib>=3.2.2
   - scikit-learn
