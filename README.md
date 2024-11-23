@@ -2,23 +2,23 @@
 
 
 ## Project Title
-**Prediction on Whether Buses Run Late in Toronto**
+**Toronto TTC Bus Delay Report**
 
 ## Description
-This project aims to predict the delay time (in minutes) for various bus routes in Toronto based on explanatory variables, including:
+This project aims to analyze the delay time (in minutes) for various bus routes in Toronto and build a model to predict future delays based on explanatory variables, including:
 - Day of the week
 - Month
 - Type of incident (if any)
 - Minimum delay time recorded
 
-We build a predictive model using historical bus data in 2022 to determine the likelihood and extent of delays for future bus operations.
+We build a predictive model using historical bus data in 2024 to determine the likelihood and extent of delays for future bus operations.
 
 ## Table of Contents
-- [README.md](#readmemd)
-- [CODE_OF_CONDUCT.md](#code_of_conductmd)
-- [CONTRIBUTING.md](#contributingmd)
-- [data/](#data)
-- [Analysis Notebook](#analysis-notebook)
-- [environment.yml & Conda Lock Files](#environmentyml--conda-lock-files)
-- [LICENSE.md](#licensemd)
+- [README.md](https://github.com/UBC-MDS/group04/blob/main/README.md)
+- [CODE_OF_CONDUCT.md](https://github.com/UBC-MDS/group04/blob/main/CODE_OF_CONDUCT.md)
+- [CONTRIBUTING.md](https://github.com/UBC-MDS/group04/blob/main/CONTRIBUTING.md)
+- [data/]([#data](https://github.com/UBC-MDS/group04/tree/main/data))
+- [Analysis Notebook](https://github.com/UBC-MDS/group04/blob/main/analysis.ipynb)
+- [environment.yml & Conda Lock Files](https://github.com/UBC-MDS/group04/blob/main/environment.yml)
+- [LICENSE.md](https://github.com/UBC-MDS/group04/blob/main/LICENSE)
 
