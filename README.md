@@ -17,7 +17,7 @@ We build a predictive model using historical bus data in 2024 to determine the l
 - [README.md](https://github.com/UBC-MDS/group04/blob/main/README.md)
 - [CODE_OF_CONDUCT.md](https://github.com/UBC-MDS/group04/blob/main/CODE_OF_CONDUCT.md)
 - [CONTRIBUTING.md](https://github.com/UBC-MDS/group04/blob/main/CONTRIBUTING.md)
-- [data/]([#data](https://github.com/UBC-MDS/group04/tree/main/data))
+- [data/](https://github.com/UBC-MDS/group04/tree/main/data)
 - [Analysis Notebook](https://github.com/UBC-MDS/group04/blob/main/analysis.ipynb)
 - [environment.yml & Conda Lock Files](https://github.com/UBC-MDS/group04/blob/main/environment.yml)
 - [LICENSE.md](https://github.com/UBC-MDS/group04/blob/main/LICENSE)
