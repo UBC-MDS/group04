@@ -26,6 +26,7 @@ dependencies:
   - catboost
   - nltk
   - imbalanced-learn
+  - conda-lock
   - pip:
     - mglearn
     - spacymoji
