@@ -7,8 +7,12 @@ __pycache__/
 *.so
 #Unnecessary Mac Files
 .DS_Store
-
+.jupyter/*
+.local/*
+.jupyter/lab/workspaces/default-37a8.jupyterlab-workspace
+.local/share/jupyter/nbsignatures.db
 # Distribution / packaging
+
 .Python
 build/
 develop-eggs/
