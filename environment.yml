@@ -27,6 +27,7 @@ dependencies:
   - nltk
   - imbalanced-learn
   - conda-lock
+  - pandera
   - pip:
     - mglearn
     - spacymoji
