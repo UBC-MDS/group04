@@ -1,0 +1,190 @@
+---
+title: Data Validation
+jupyter:
+  kernelspec:
+    display_name: 'Python [conda env:base] *'
+    language: python
+    name: conda-base-py
+---
+
+
+This notebook will be used for data validation.
+1. Pre-processing data (e.g., scale and split into train & test)
+2. Validate data (screating schema)
+
+
+# 1. Pre-processing data
+First, we import file with permission. Then, study the raw data
+
+```{python}
+import pandas as pd
+import numpy as np
+import pandera as pa
+from pandera.typing import DataFrame
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+```
+
+```{python}
+import os
+
+file_path = '../data/ttc-bus-delay-data-2024.csv'
+
+if os.path.exists(file_path) and file_path.endswith('.csv'):
+    try:
+        # Load the CSV file and parse dates
+        ttc = pd.read_csv(file_path, parse_dates=['Date'])
+        print("File loaded successfully!")
+    except Exception as e:
+        print(f"Error loading file: {e}")
+else:
+    print("Error: File is either missing or not in CSV format.")
+```
+
+```{python}
+ttc = pd.read_csv('../data/ttc-bus-delay-data-2024.csv', parse_dates=['Date'])
+ttc.head()
+```
+
+```{python}
+ttc['Route'].isnull().sum()
+```
+
+```{python}
+ttc['Direction'].unique()
+```
+
+```{python}
+ttc1 = ttc.copy()
+ttc1['Time'] = pd.to_datetime(ttc['Time']).dt.time
+ttc1['Date_'] = ttc1['Date'].dt.date
+ttc1['Date_'] = pd.to_datetime(ttc1['Date_'])
+ttc1['Month'] = ttc1['Date'].dt.month.astype("int64")
+ttc1['Hour'] = ttc1['Time'].map(lambda x: x.hour)
+ttc1 = ttc1.drop(columns=['Date', 'Time'])
+
+# final dataset
+ttc_clean = ttc1.drop(columns=['Direction', 'Vehicle'])
+ttc_clean = ttc_clean.dropna()
+ttc_clean.isna().sum()
+```
+
+```{python}
+ttc_clean.info()
+```
+
+## 2. Validation Schema
+Now we will create schema for all the columns and a couple other validations in a function
+
+```{python}
+# validate data
+schema = pa.DataFrameSchema(
+    {
+        "Route": pa.Column(str, nullable=True),
+        "Day": pa.Column(str, checks=[pa.Check.isin(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"], error="Day must be a valid weekday")]),
+        "Location": pa.Column(str),
+        "Incident": pa.Column(str, checks=[pa.Check.isin(
+                    ["Cleaning - Unsanitary", "Collision - TTC", "Mechanical", "Operations - Operator", "Diversion", "Emergency Services", "Utilized Off Route", "Investigation", "Road Blocked - NON-TTC Collision", "Vision", "General Delay", "Security"], # known incident types
+                    error="Incident must be one of: Vision, General Delay, Security")]),
+        "Min Delay": pa.Column(int, checks=[pa.Check.ge(0, error="Min Delay must be non-negative")]),
+        "Min Gap": pa.Column(int, checks=[pa.Check.ge(0, error="Min Gap must be non-negative")]),
+        "Date_": pa.Column(pd.Timestamp, checks=pa.Check(lambda x: x.apply(lambda d: isinstance(d, (str, pd.Timestamp))),error="Date must be string or datetime")), # used ChatGPT to get this datetime check
+        "Month": pa.Column(int, checks=[pa.Check.ge(1, error="Month must be >= 1"), pa.Check.le(12, error="Month must be <= 12")]),
+        "Hour": pa.Column(int,  checks=[pa.Check.ge(0, error="Hour must be >= 0"), pa.Check.le(23, error="Hour must be <= 23")]),
+    },
+    checks=[
+        # not checking for duplicate rows here
+        pa.Check(lambda df: ~(df.isna().all(axis=1)).any(), error="Empty rows found"),
+        pa.Check(lambda df: df["Min Delay"].isna().mean() <= 0.05, error="Min Delay missingness exceeds 5%"),
+        pa.Check(lambda df: df["Min Gap"].isna().mean() <= 0.05, error="Min Gap missingness exceeds 5%"),
+    ],
+)
+
+schema.validate(ttc_clean, lazy=True)
+```
+
+#### Other checks outside of schema: 
+There are other data validation checks to perform for the dataset, including flagging duplicates, determining correlation etc. 
+For this, we will create a function so it stays contained and can be reused again later. 
+
+```{python}
+# additional data validation for the dataframe
+def additional_validations(df: DataFrame):
+    # check for correct column names
+    required_columns = {"Date", "Route", "Time", "Day", "Location", "Incident", "Min Delay", "Min Gap", "Direction", "Vehicle"}
+    missing_columns = required_columns - set(df.columns)
+    assert not missing_columns, f"Missing columns: {missing_columns}"
+
+    # check for outliers (example: Min Delay or Min Gap unreasonably large)
+    assert (df["Min Delay"] <= 1440).all(), "Outlier found in Min Delay"
+    assert (df["Min Gap"] <= 1440).all(), "Outlier found in Min Gap"
+
+    # check category levels
+    assert df["Day"].isin(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]).all(), \
+        "Invalid Day values"
+    assert df["Incident"].isin(["Cleaning - Unsanitary", "Collision - TTC", "Mechanical", "Operations - Operator", "Diversion", "Emergency Services", "Utilized Off Route", "Investigation", "Road Blocked - NON-TTC Collision", "Vision", "General Delay", "Security"]).all(), "Invalid Incident values"
+
+    # target variable distribution (example: ensure Min Delay isn't mostly 0)
+    assert (df["Min Delay"] > 0).mean() > 0.05, "Min Delay mostly zero, check for data skewness"
+
+    # check for duplicate rows
+    duplicates = df[df.duplicated()]
+    if not duplicates.empty:
+        print("Duplicate rows found:\n", duplicates)
+    else:
+        print("No duplicate rows found.")
+
+    # correlation checks
+    corr_matrix = df.corr(numeric_only=True)
+    assert not corr_matrix.isnull().values.any(), "Anomalous correlations detected in numeric features"
+    print("All checks passed")
+
+
+additional_validations(ttc)
+```
+
+```{python}
+ttc_lr = ttc_clean.loc[(ttc_clean["Min Delay"]<30) & (ttc_clean["Min Delay"]>0)].reset_index(drop=True)
+ttc_lr
+```
+
+```{python}
+#Split dataset into target and features
+X = ttc_lr[["Route","Incident","Location","Day","Hour","Month"]]
+y = ttc_lr['Min Delay']
+```
+
+```{python}
+numeric_features=["Hour","Month"]
+categorical_features = ['Location', 'Route', 'Incident',"Day"]
+```
+
+```{python}
+#Create transformers and preprocessing pipeline
+preprocessor = ColumnTransformer(
+   transformers=[
+       ('num', StandardScaler(), numeric_features),
+       ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_features)
+   ]
+)
+preprocessor
+```
+
+```{python}
+#Create Model pipeline
+model_pipeline = Pipeline(steps=[
+   ('preprocessor', preprocessor),
+   ('model', LogisticRegression(random_state=123, max_iter=2000))
+])
+model_pipeline
+```
+
+```{python}
+#Split dataset into train and test data
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=123)
+```
+
