@@ -23,6 +23,9 @@ from sklearn.model_selection import cross_validate, RandomizedSearchCV
 @click.option('--preprocessor_loc', type=str, help="Folder where the preprocessor object will be saved")
 @click.option('--seed', type=int, help="Random seed, default value: 123", default=123)
 def main(raw_data, preprocessed_data, preprocessor_loc, seed):
+    #Make folders for placing processed files and models if they do not already exit
+    os.makedirs(os.path.dirname(preprocessed_data), exist_ok=True)
+    os.makedirs(os.path.dirname(preprocessor_loc), exist_ok=True)
 
     # the Dates column is parsed through date argument to make sure it is seen as datetime object.
     ttc = pd.read_csv(raw_data, parse_dates=['Date'])
@@ -46,13 +49,13 @@ def main(raw_data, preprocessed_data, preprocessor_loc, seed):
     ttc_clean = ttc1.drop(columns=['Direction', 'Vehicle'])
     # As NaN routes have 0 delays, it is safe to drop these rows
     ttc_clean = ttc_clean.dropna()
-    ttc_clean.to_csv(os.path.join(preprocessed_data,'clean_data/complete_data.csv'),index=False)
+    ttc_clean.to_csv(os.path.join(preprocessed_data,'complete_data.csv'),index=False)
     ttc_clean.reset_index(drop=True, inplace=True)
     #Remove outliers with delay greater than 30 mins and less than 1 min
     ttc_lr = ttc_clean.loc[(ttc_clean["Min Delay"]<30) & (ttc_clean["Min Delay"]>0)].reset_index(drop=True)
     
     #store data without outliers
-    ttc_lr.to_csv(os.path.join(preprocessed_data,'clean_data/no_outliers.csv'),index=False)
+    ttc_lr.to_csv(os.path.join(preprocessed_data,'no_outliers.csv'),index=False)
     # Assign delays into 3 classes "Short Delay", "Medium Delay", and "Long Delay"
     ttc_lr["Min Delay"] = ttc_lr["Min Delay"].apply(lambda x: "Short Delay" if type(x)== int and x >0 and x<=10 else x)
     ttc_lr["Min Delay"] = ttc_lr["Min Delay"].apply(lambda x: "Medium Delay" if type(x)== int and  x >10 and x<=20 else x)
