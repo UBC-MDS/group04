@@ -6,6 +6,10 @@ format:
     pdf:
         toc: true
         toc-depth: 2
+    html:
+        toc: true
+        toc-depth: 2
+bibliography: references.bib
 execute:
     echo: false
     warning: false
@@ -15,7 +19,7 @@ editor: source
 
 ## Summary
 
-This report examines the 2024 TTC bus delay dataset to forecast delay times based on factors such as route, incident type, location, and time. We aim to classify delays into short, medium, and long categories using a logistic regression model. This study acts as a foundation for the implementation of real-time prediction models that could aid the Toronto Transit Commission in resource allocation and improving schedule adherence.
+This report examines the 2024 TTC bus delay dataset to forecast delay times based on factors such as route, incident type, location, and time. We aim to classify delays into short, medium, and long categories using a logistic regression model. The final logistic regression model show moderate effectiveness in predicting delay durations. Predicted frequencies for short and medium delays correspond with actual data; however, the model underpredicts long delays, highlighting the complexity of accurately capturing extended durations and their contributing factors. This study acts as a foundation for the implementation of real-time prediction models that could aid the Toronto Transit Commission in resource allocation and improving schedule adherence.
 
 ## Introduction
 
@@ -23,430 +27,52 @@ Public transportation systems, such as Toronto's TTC, are essential for facilita
 
 ## Data
 
-The data for this analysis was sourced from the [open.toronto.ca](http://open.toronto.ca) website, with a specific emphasis on the bus delay data for the year 2024. This dataset contains multiple incident reports, including information on route number, delay duration, incident type, and incident location. Raw data can be found [here](https://open.toronto.ca/dataset/ttc-bus-delay-data/).
+The data for this analysis was sourced from the [open.toronto.ca](http://open.toronto.ca) website, with a specific emphasis on the bus delay data for the year 2024. Raw data can be found [here](https://open.toronto.ca/dataset/ttc-bus-delay-data/).
 
-## EDA Analysis
-
-We will first conduct an EDA analysis on the data. The steps include:
-
-1. **Loading and Preprocessing Data:** Handling missing values, converting timestamp data to day parts, and cleaning data fields irrelevant to our delay analysis.
-2. **Visualization:** Analyze the distribution of delays, identify top routes and locations with frequent delay incidents, and visualize delays based on day and incident type.
-
-```{python}
-# This code block will be used for all library imports. 
-import pandas as pd
-import altair as alt
-
-# Simplify working with large datasets in Altair
-alt.data_transformers.enable('vegafusion')
-```
-
-### Loading and Fixing Data
-
-```{python}
-# Let's load the data.
-# the Dates column is parsed through date argument to make sure it is seen as datetime object.
-ttc = pd.read_csv('../data/ttc-bus-delay-data-2024.csv', parse_dates=['Date'])
-```
+Each row in the dataset represents one instance of delay, specifying its route, date and time, location, classification of bus incident, and its delay duration.
 
 ```{python}
 #| label: tbl-ttc_head
 #| tbl-cap: Snippet of TTC bus delay data
+import pandas as pd
+import altair as alt
+ttc = pd.read_csv('../data/ttc-bus-delay-data-2024.csv', parse_dates=['Date'])
 ttc.head()
 ```
-A snippet of the TTC bus delay data is shown in @tbl-ttc_head.
 
-This dataset has `{python} ttc.shape[0]` rows and `{python} ttc.shape[1]` columns.
+A snippet of the dataset is show in @tbl-ttc_head.
 
-```{python}
-#| label: tbl-ttc_info
-#| tbl-cap: Details of each column
-# .info tells us about the object type for each column
-# we can see 'Date' column was read as datetime object
-ttc.info()
-```
-The details of each column are shown in @tbl-ttc_info.
+## Analysis
 
-```{python}
-# Let's also fix the 'Time' column
-ttc1 = ttc.copy() # preserving the original
+An EDA analysis is first conducted on the dataset with the folliowing objectives:
 
-# Converting column to datetime object
-ttc1['Time'] = pd.to_datetime(ttc['Time']).dt.time
-```
-
-Now, let's split 'Date' column into 'Date_' and 'Month' (year is not needed since this is for 2024), and convert 'Time' into 'Hours' so it more useful in the analysis later on. Let's drop the 'Date' and 'Time' column since they are no longer needed
-
-```{python}
-ttc1['Date_'] = ttc1['Date'].dt.date
-ttc1['Month'] = ttc1['Date'].dt.month
-ttc1['Hour'] = ttc1['Time'].map(lambda x: x.hour) # used ChatGPT for this conversion
-```
+1. **Loading and Preprocessing Data:** Handling missing values, converting timestamp data to day parts, and cleaning data fields irrelevant to our delay analysis.
+2. **Visualization:** Analyze the distribution of delays, identify top routes and locations with frequent delay incidents, and visualize delays based on day and incident type.
 
-```{python}
-ttc1 = ttc1.drop(columns=['Date', 'Time'])
-```
+A linear regression model is then used to build the classification model to predict whether a delay falls into the short, medium or long duration. The C parameter in the linear regression model is chosen using a 5-fold cross validation with the classification accuracy as the metric.
 
-### Preprocessing Data
-Now that the data is loaded in, we want to make sure we don't perform our analysis will null values. So, we will go through and identify any columns that have big number of null values and determine if they are worth keeping for analysis or not. 
+The Python programming language (@Python) and the following Python Python packages are used to perform tbe analysis: numpy (@numpy), Pandas (@pandas), altair (@altair), scikit-learn (@scikit-learn). The code used to perform the analysis and generate the figures can be found [here](https://github.com/UBC-MDS/group04/tree/main/scripts).
 
-```{python}
-ttc1.isna().sum()
-```
+## Results and Discussion
 
-```{python}
-# 'Direction' column has a lot null values. Let's see if these rows can be dropped
-ttc1[ttc1['Direction'].isna()].head(20)
-```
+The EDA analysis of the TTC bus delay data uncovers several key insights.
 
-<br>
-Maybe deleting the rows isn't such a good idea because it makes up for a lot of overall data in the dataset. Instead, let's drop the column since we already have information about the route. For that reason, it is also okay to drop 'Vehicle' column as it is not needed for our goal of observing delays in busses.
+![](../results/images/incidents_by_hour.png){#fig-incidents_by_hour width=70%}
 
-```{python}
-ttc_clean = ttc1.drop(columns=['Direction', 'Vehicle'])
-ttc_clean.head()
-```
+@fig-incidents_by_hour shows that majority of the delays occur during the late evenings, most likely due to the influx of people returning back home from work.
 
-Now, let's look at the Route column and its NaNs. This column is particularly important for us for our goal.
+![](../results/images/incidents_by_day.png){#fig-incidents_by_day width=70%}
 
-```{python}
-na_route = ttc1[ttc1['Route'].isna()]
-na_route.head(10)
-```
-
-```{python}
-# Now, we will see how many for NaN routes have delays
-na_route[na_route['Min Delay'] == 0].count()
-```
+@fig-incidents_by_day indicates that Tuesday through Friday are the days with the highest delays, suggesting a potential correlation with weekday commuter traffic.
 
-Since all the NaN routes have 0 delays, it is safe to drop these rows. We will also remove all other null values to ensure a clean dataset to work with
+![](../results/images/incident_types.png){#fig-incident_types width=70%}
 
-```{python}
-ttc_clean = ttc_clean.dropna()
-ttc_clean.isna().sum()
-```
-
-```{python}
-ttc_clean.head()
-```
+@fig-incident_types show that mechanical issues are the primary cause of delays, comprising a substantial portion, followed by operator-related operations and diversions. This finding indicates potential areas for intervention, such as improved maintenance or optimized scheduling, to mitigate delay incidents.
 
-### Visualizing
-
-Now it's the fun part: visualizations!
-
-Let's look at how the delays are distributed in this data
-
-```{python}
-# Filter data
-ttc_filtered = ttc_clean[ttc_clean['Min Delay'] < 200]
-
-# Creating histogram
-delay_dist = alt.Chart(ttc_filtered).mark_bar().encode(
-    alt.X('Min Delay:Q', bin=alt.Bin(maxbins=50), title='Delay (in minutes)'),
-    alt.Y('count()', title='Frequency')
-).properties(
-    title='Distribution of Delays',
-)
-
-# Display
-delay_dist
-```
-
-This plot shows that majority of the delays occur within 0 to 25 mins. This can indicate that most delays are short in duration.
-
-___
-Now let's take a look at top 20 routes with highest delay incidents
-
-```{python}
-# Group by 'Route' and count the occurrences
-route_counts = ttc_clean.groupby('Route').size().reset_index(name='Count')
-
-# Sort counts in descending order and get the top 20 routes
-route_counts = route_counts.sort_values('Count', ascending=False)
-top_routes = route_counts.head(20)
-#top_routes
-
-# Creating bar chart
-top20_delay_routes = alt.Chart(top_routes).mark_bar().encode(
-    alt.X('Route:N', title='Route', sort=alt.EncodingSortField(field='Count', order='descending')),  # 'N' for nominal (categorical)
-    alt.Y('Count:Q', title='Count'),  # 'Q' for quantitative (numerical)
-    alt.Color('Count:Q')
-).properties(
-    title='Top 20 Routes with Highest Delay Incidents',
-)
-
-# Display
-top20_delay_routes
-```
-
-This plot shows that majority of the incidents are occuring on route 32 with close to 1,400 counts of delays, followed by route 32 and 36.
-As we move towards other routes, there seems to be a smooth decline in delay counts, showing a decreasing trend.
-
-```{python}
-# Top 10 locations with Highest Delay Counts
-
-# Filter rows where 'Min Delay' is greater than 0 (i.e., there is an actual delay)
-delayed_ttc = ttc[ttc['Min Delay'] > 0]
-
-# Group by 'Location' and count the number of delays (i.e., count occurrences where 'Min Delay' > 0)
-delay_counts = delayed_ttc.groupby('Location')['Min Delay'].count().reset_index()
-
-# Rename the column for clarity
-delay_counts = delay_counts.rename(columns={'Min Delay': 'Delay Count'})
-
-# Sort by 'Delay Count' in descending order
-delay_counts_sorted = delay_counts.sort_values(by='Delay Count', ascending=False)
-
-# Select the top 10 locations with the highest delay counts
-top_10_locations = delay_counts_sorted.head(10)
-
-# Display the top 10 locations with the highest delay counts
-print(top_10_locations)
-```
-
-```{python}
-# Create a bar chart of the top 10 locations with the highest delay counts
-chart = alt.Chart(top_10_locations).mark_bar().encode(
-    x=alt.X('Delay Count:Q', title='Delay Count'),
-    y=alt.Y('Location:N', title='Location', sort='-x'),  # Sort by delay count (descending)
-    color='Location:N'
-).properties(
-    title='Top 10 Locations with the Highest Delay Counts'
-)
-
-chart.show()
-```
-
-```{python}
-# Delay Counts by Day of the Week
-
-delay_counts_day = delayed_ttc.groupby('Day')['Min Delay'].count().reset_index()
-delay_counts_day = delay_counts_day.rename(columns={'Min Delay': 'Delay Count'})
-delay_counts_day = delay_counts_day.sort_values(by='Delay Count', ascending=False)
-print("\nDelay Counts by Day of the Week")
-print(delay_counts_day)
-
-
-# Plot delay counts by Day of the Week
-chart_month = alt.Chart(delay_counts_day).mark_bar().encode(
-    x=alt.X('Day:O', title='Day of the Week'),
-    y=alt.Y('Delay Count:Q', title='Delay Count'),
-    color='Day:O'
-).properties(
-    title='Delay Counts by Day of the Week'
-)
-
-chart_month.show()
-```
-
-```{python}
-delay_counts_incident = delayed_ttc.groupby('Incident')['Min Delay'].count().reset_index()
-delay_counts_incident = delay_counts_incident.rename(columns={'Min Delay': 'Delay Count'})
-delay_counts_incident = delay_counts_incident.sort_values(by='Delay Count', ascending=False)
-
-print("Delay Counts by Incident Type")
-print(delay_counts_incident)
-
-
-# Visualize delay counts by Incident Type
-chart_incident = alt.Chart(delay_counts_incident).mark_bar().encode(
-    x=alt.X('Incident:N', title='Incident Type', sort='-y'),  # Sort by Delay Count
-    y=alt.Y('Delay Count:Q', title='Delay Count'),
-    color='Incident:N'
-).properties(
-    title='Delay Counts by Incident Type'
-)
-
-chart_incident.show()
-```
-
-## Linear Regression Model for Prediction
-
-The EDA analysis was very informative in understanding the columns of interest for this project. The columns which seem to impact the Min Delay are Incident and Route, so this analysis will be focused around using these 2 columns to create a Logistic Regression model, to predict the expected delay given a route and incident. The delay output will be categorized into "Short", "Medium" or "Long". Cross-validation and randomized grid search were applied for hyperparameter tuning to enhance model performance.
-
-First the required libraries are loaded to perrform the analysis.
-
-```{python}
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
-from sklearn.pipeline import Pipeline
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LogisticRegression
-from sklearn.dummy import DummyClassifier
-from sklearn.metrics import mean_squared_error
-from sklearn.model_selection import cross_validate, RandomizedSearchCV
-```
-
-To perform the analysis, the cleaned data from the EDA will be used.
-
-```{python}
-ttc_clean.reset_index(drop=True, inplace=True)
-ttc_clean
-```
-
-Seeing as the data has alot of extreme values, the outliers will be eliminated. These outliers are delays greater than 30 minutes and less than 1 minute.
-
-```{python}
-ttc_lr = ttc_clean.loc[(ttc_clean["Min Delay"]<30) & (ttc_clean["Min Delay"]>0)].reset_index(drop=True)
-```
-
-Next, the `Min Delay` column needs to be pre processed as there are multiple unique values and predicting on such values is not efficient, thus the times are divided in 3 classes:
-* Short Delay: delays less than or equal to 10 minutes
-* Medium Delay: Delays of more than 10 minutes but less than or equal to 20 minutes
-* Long Delays: Delays greater than 20 minutes
-
-```{python}
-ttc_lr["Min Delay"] = ttc_lr["Min Delay"].apply(lambda x: "Short Delay" if type(x)== int and x >0 and x<=10 else x)
-ttc_lr["Min Delay"] = ttc_lr["Min Delay"].apply(lambda x: "Medium Delay" if type(x)== int and  x >10 and x<=20 else x)
-ttc_lr["Min Delay"] = ttc_lr["Min Delay"].apply(lambda x: "Long Delay" if type(x)== int and  x >=10 else x)
-ttc_lr
-```
-
-```{python}
-#Split dataset into target and features
-X = ttc_lr[["Route","Incident","Location","Day","Hour","Month"]]
-y = ttc_lr['Min Delay']
-```
-
-```{python}
-#Create types of features
-numeric_features=["Hour","Month"]
-categorical_features = ['Location', 'Route', 'Incident',"Day"]
-```
-
-```{python}
-#Create transformers and preprocessing pipeline
-preprocessor = ColumnTransformer(
-   transformers=[
-       ('num', StandardScaler(), numeric_features),
-       ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_features)
-   ]
-)
-preprocessor
-```
-
-```{python}
-#Create Model pipeline
-model_pipeline = Pipeline(steps=[
-   ('preprocessor', preprocessor),
-   ('model', LogisticRegression(random_state=123, max_iter=2000))
-])
-model_pipeline
-```
-
-```{python}
-#Split dataset into train and test data
-
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=123)
-```
-
-Perform cross validation to see how the model performs
-
-```{python}
-cv_pipe=cross_validate(model_pipeline, X_train, y_train, cv=5, return_train_score=True)
-results_df=pd.DataFrame(pd.DataFrame(cv_pipe))
-results_df
-```
-
-We then conduct hyperparameter tuning to optimize results, using a parameter grid of values of the hyperparameter C in the range $10^{-5}$ to $10^{10}$ and then using it in a Randomized Search.
-
-```{python}
-param_dist = {
-    "model__C": [10**i for i in range(-5,10)]
-}
-print("Grid size: %d" % (np.prod(list(map(len, param_dist.values())))))
-```
-
-```{python}
-random_search = RandomizedSearchCV(model_pipeline,param_dist, n_iter=15, n_jobs=-1,return_train_score=True,random_state=123)
-random_search.fit(X_train,y_train)
-```
-
-The selected model has the best train score with the smallest difference in train and validation scores, and indicating less overfitting. Thus the value of 0.1 is the value chosen for the final model.
-
-```{python}
-b=pd.DataFrame(pd.DataFrame(random_search.cv_results_).iloc[4])
-b.T[["params","mean_train_score","mean_test_score"]]
-```
-
-Create optimized pipiline with updated C
-
-```{python}
-optimized_pipe= Pipeline(steps=[
-   ('preprocessor', preprocessor),
-   ('model', LogisticRegression(random_state=123, max_iter=2000,C=0.1))
-])
-```
-
-```{python}
-#Fitting the model
-optimized_pipe.fit(X_train, y_train)
-```
-
-Making predictions on the optimized model
-
-```{python}
-predictions = optimized_pipe.predict(X_test)
-```
-
-```{python}
-# Define order explicitly to reorder bars
-order=["Short","Medium","Long"]
-```
-
-Create visualization for visually comparing the model performance.
-
-```{python}
-fig,ax=plt.subplots(1,2)
-fig.set_dpi(150)
-fig.set_label(["Actual Delays","Predicted Delays"])
-ax[0].hist( y_test, label='Actual Delays')
-ax[0].set_xticklabels(labels=order)
-ax[0].set_ylabel('Frequency')
-ax[1].hist( predictions, label='Predicted Delays',color="orange")
-ax[1].set_xticklabels(labels=order)
-ax[1].set_ylabel('Frequency')
-fig.legend(loc="upper left",bbox_to_anchor=(0.01, 1.05))
-fig.suptitle('Comparison of Actual vs. Predicted Delays', y=1.12)
-
-plt.tight_layout()
-plt.show()
-```
-
-## Discussion of Results
-
-The EDA analysis of the TTC bus delay data uncovers several key insights. The distribution of delays is significantly biased towards shorter durations, with the majority of delays lasting less than 20 minutes. This indicates that although delays occur frequently, they are typically short and manageable.
-
-Kennedy Station stands out as the site with the highest number of delays, suggesting that either infrastructural limitations or a high volume of passengers are contributing to these frequent interruptions. The analysis of delay counts by day of the week indicates that Tuesday through Friday are the days with the highest delays, suggesting a potential correlation with weekday commuter traffic.
-
-Mechanical issues are the primary cause of delays, comprising a substantial portion, followed by operator-related operations and diversions. This finding indicates potential areas for intervention, such as improved maintenance or optimized scheduling, to mitigate delay incidents.
-
-The results of the logistic regression model show moderate effectiveness in predicting delay durations. Predicted frequencies for short and medium delays correspond with actual data; however, the model underpredicts long delays, highlighting the complexity of accurately capturing extended durations and their contributing factors. We could explore more advanced predictive models to improve accuracy. Furthermore, more data integration such as weather conditions could enhance model performance.
-
-Data Validation
-
-```{python}
-# Correct data file format
-
-import os
-import pandas as pd
-
-file_path = 'data/ttc-bus-delay-data-2024.csv'
-
-if os.path.exists(file_path) and file_path.endswith('.csv'):
-    try:
-        # Load the CSV file and parse dates
-        ttc = pd.read_csv(file_path, parse_dates=['Date'])
-        print("File loaded successfully!")
-    except Exception as e:
-        print(f"Error loading file: {e}")
-else:
-    print("Error: File is either missing or not in CSV format.")
-```
-
-The warning suggests that the pd.read_csv() method couldn't infer a uniform date format for the Date column. This happens when the column contains inconsistent date formats or unparseable values. This was fixed when we used parse_dates=['Date'] in ttc = pd.read_csv('data/ttc-bus-delay-data-2024.csv', parse_dates=['Date'])
+Kennedy Station stands out as the site with the highest number of delays, suggesting that either infrastructural limitations or a high volume of passengers are contributing to these frequent interruptions.
 
+The EDA analysis was very informative in understanding the columns of interest for this project, which will be used to create the logistic regression model to predict the expected delay. The delay output will be categorized into "Short", "Medium" or "Long". Cross-validation and randomized grid search were applied for hyperparameter tuning to enhance model performance.
 
+![](../results/images/PredictedVsActual.png){#fig-predicted_vs_actual width=70%}
+
+The results of the logistic regression model in @fig-predicted_vs_actual show moderate effectiveness in predicting delay durations. Predicted frequencies for short and medium delays correspond with actual data; however, the model underpredicts long delays, highlighting the complexity of accurately capturing extended durations and their contributing factors. We could explore more advanced predictive models to improve accuracy. Furthermore, more data integration such as weather conditions could enhance model performance.
