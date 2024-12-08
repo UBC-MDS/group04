@@ -29,8 +29,6 @@ Public transportation systems, such as Toronto's TTC, are essential for facilita
 
 The data for this analysis was sourced from the [open.toronto.ca](http://open.toronto.ca) website, with a specific emphasis on the bus delay data for the year 2024. Raw data can be found [here](https://open.toronto.ca/dataset/ttc-bus-delay-data/).
 
-Each row in the dataset represents one instance of delay, specifying its route, date and time, location, classification of bus incident, and its delay duration.
-
 ```{python}
 #| label: tbl-ttc_head
 #| tbl-cap: Snippet of TTC bus delay data
@@ -40,7 +38,7 @@ ttc = pd.read_csv('../data/ttc-bus-delay-data-2024.csv', parse_dates=['Date'])
 ttc.head()
 ```
 
-A snippet of the dataset is show in @tbl-ttc_head.
+The dataset contains in total `{python} ttc.shape[0]` rows and `{python} ttc.shape[1]` columns. Each row in the dataset represents one instance of delay, specifying its route, date and time, location, classification of bus incident, and its delay duration. A snippet of the dataset is show in @tbl-ttc_head.
 
 ## Analysis
 
@@ -51,7 +49,7 @@ An EDA analysis is first conducted on the dataset with the folliowing objectives
 
 A linear regression model is then used to build the classification model to predict whether a delay falls into the short, medium or long duration. The C parameter in the linear regression model is chosen using a 5-fold cross validation with the classification accuracy as the metric.
 
-The Python programming language (@Python) and the following Python Python packages are used to perform tbe analysis: numpy (@numpy), Pandas (@pandas), altair (@altair), scikit-learn (@scikit-learn). The code used to perform the analysis and generate the figures can be found [here](https://github.com/UBC-MDS/group04/tree/main/scripts).
+The Python programming language (@Python) and the following Python packages are used to perform tbe analysis: numpy (@numpy), Pandas (@pandas), altair (@altair), scikit-learn (@scikit-learn). The code used to perform the analysis and generate the figures can be found [here](https://github.com/UBC-MDS/group04/tree/main/scripts).
 
 ## Results and Discussion
 
@@ -69,9 +67,7 @@ The EDA analysis of the TTC bus delay data uncovers several key insights.
 
 @fig-incident_types show that mechanical issues are the primary cause of delays, comprising a substantial portion, followed by operator-related operations and diversions. This finding indicates potential areas for intervention, such as improved maintenance or optimized scheduling, to mitigate delay incidents.
 
-Kennedy Station stands out as the site with the highest number of delays, suggesting that either infrastructural limitations or a high volume of passengers are contributing to these frequent interruptions.
-
-The EDA analysis was very informative in understanding the columns of interest for this project, which will be used to create the logistic regression model to predict the expected delay. The delay output will be categorized into "Short", "Medium" or "Long". Cross-validation and randomized grid search were applied for hyperparameter tuning to enhance model performance.
+The EDA analysis was very informative in understanding the columns of interest for this project, which will be used to create the logistic regression model to predict the expected delay. The delay output will be categorized into "Short", "Medium" or "Long". 5-fold cross-validation and randomized grid search were applied for C hyperparameter tuning to enhance model performance.
 
 ![](../results/images/PredictedVsActual.png){#fig-predicted_vs_actual width=70%}
 

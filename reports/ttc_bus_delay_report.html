@@ -122,7 +122,6 @@ div.csl-indent {
 <section id="data" class="level2">
 <h2 class="anchored" data-anchor-id="data">Data</h2>
 <p>The data for this analysis was sourced from the <a href="http://open.toronto.ca">open.toronto.ca</a> website, with a specific emphasis on the bus delay data for the year 2024. Raw data can be found <a href="https://open.toronto.ca/dataset/ttc-bus-delay-data/">here</a>.</p>
-<p>Each row in the dataset represents one instance of delay, specifying its route, date and time, location, classification of bus incident, and its delay duration.</p>
 <div class="cell" data-execution_count="1">
 <div id="tbl-ttc_head" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="1">
 <figure class="quarto-float quarto-float-tbl figure">
@@ -130,7 +129,7 @@ div.csl-indent {
 Table&nbsp;1: Snippet of TTC bus delay data
 </figcaption>
 <div aria-describedby="tbl-ttc_head-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div class="cell-output cell-output-display" data-execution_count="5">
+<div class="cell-output cell-output-display" data-execution_count="2">
 <div>
 
 
@@ -225,7 +224,7 @@ Table&nbsp;1: Snippet of TTC bus delay data
 </figure>
 </div>
 </div>
-<p>A snippet of the dataset is show in <a href="#tbl-ttc_head" class="quarto-xref">Table&nbsp;1</a>.</p>
+<p>The dataset contains in total 45300 rows and 10 columns. Each row in the dataset represents one instance of delay, specifying its route, date and time, location, classification of bus incident, and its delay duration. A snippet of the dataset is show in <a href="#tbl-ttc_head" class="quarto-xref">Table&nbsp;1</a>.</p>
 </section>
 <section id="analysis" class="level2">
 <h2 class="anchored" data-anchor-id="analysis">Analysis</h2>
@@ -235,7 +234,7 @@ Table&nbsp;1: Snippet of TTC bus delay data
 <li><strong>Visualization:</strong> Analyze the distribution of delays, identify top routes and locations with frequent delay incidents, and visualize delays based on day and incident type.</li>
 </ol>
 <p>A linear regression model is then used to build the classification model to predict whether a delay falls into the short, medium or long duration. The C parameter in the linear regression model is chosen using a 5-fold cross validation with the classification accuracy as the metric.</p>
-<p>The Python programming language (<span class="citation" data-cites="Python">Van Rossum and Drake (<a href="#ref-Python" role="doc-biblioref">2009</a>)</span>) and the following Python Python packages are used to perform tbe analysis: numpy (<span class="citation" data-cites="numpy">Harris et al. (<a href="#ref-numpy" role="doc-biblioref">2020</a>)</span>), Pandas (<span class="citation" data-cites="pandas">McKinney (<a href="#ref-pandas" role="doc-biblioref">2010</a>)</span>), altair (<span class="citation" data-cites="altair">VanderPlas (<a href="#ref-altair" role="doc-biblioref">2018</a>)</span>), scikit-learn (<span class="citation" data-cites="scikit-learn">Pedregosa et al. (<a href="#ref-scikit-learn" role="doc-biblioref">2011</a>)</span>). The code used to perform the analysis and generate the figures can be found <a href="https://github.com/UBC-MDS/group04/tree/main/scripts">here</a>.</p>
+<p>The Python programming language (<span class="citation" data-cites="Python">Van Rossum and Drake (<a href="#ref-Python" role="doc-biblioref">2009</a>)</span>) and the following Python packages are used to perform tbe analysis: numpy (<span class="citation" data-cites="numpy">Harris et al. (<a href="#ref-numpy" role="doc-biblioref">2020</a>)</span>), Pandas (<span class="citation" data-cites="pandas">McKinney (<a href="#ref-pandas" role="doc-biblioref">2010</a>)</span>), altair (<span class="citation" data-cites="altair">VanderPlas (<a href="#ref-altair" role="doc-biblioref">2018</a>)</span>), scikit-learn (<span class="citation" data-cites="scikit-learn">Pedregosa et al. (<a href="#ref-scikit-learn" role="doc-biblioref">2011</a>)</span>). The code used to perform the analysis and generate the figures can be found <a href="https://github.com/UBC-MDS/group04/tree/main/scripts">here</a>.</p>
 </section>
 <section id="results-and-discussion" class="level2">
 <h2 class="anchored" data-anchor-id="results-and-discussion">Results and Discussion</h2>
@@ -273,8 +272,7 @@ Figure&nbsp;3
 </figure>
 </div>
 <p><a href="#fig-incident_types" class="quarto-xref">Figure&nbsp;3</a> show that mechanical issues are the primary cause of delays, comprising a substantial portion, followed by operator-related operations and diversions. This finding indicates potential areas for intervention, such as improved maintenance or optimized scheduling, to mitigate delay incidents.</p>
-<p>Kennedy Station stands out as the site with the highest number of delays, suggesting that either infrastructural limitations or a high volume of passengers are contributing to these frequent interruptions.</p>
-<p>The EDA analysis was very informative in understanding the columns of interest for this project, which will be used to create the logistic regression model to predict the expected delay. The delay output will be categorized into “Short”, “Medium” or “Long”. Cross-validation and randomized grid search were applied for hyperparameter tuning to enhance model performance.</p>
+<p>The EDA analysis was very informative in understanding the columns of interest for this project, which will be used to create the logistic regression model to predict the expected delay. The delay output will be categorized into “Short”, “Medium” or “Long”. 5-fold cross-validation and randomized grid search were applied for C hyperparameter tuning to enhance model performance.</p>
 <div id="fig-predicted_vs_actual" class="quarto-float quarto-figure quarto-figure-center anchored" width="70%">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-predicted_vs_actual-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
