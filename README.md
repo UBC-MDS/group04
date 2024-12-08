@@ -52,6 +52,29 @@ To stop the services, press `Ctrl+C` in the terminal where `docker-compose up` i
 docker-compose down
 ```
 
+## Running preprocesing script
+
+Use the following commands on the terminal in the docker container to run the scripts successfully
+
+1) Navigate to the scripts folder
+
+```bash
+cd scripts
+```
+Run the preprocess.py script by using the following command in the terminal:
+```bash
+python preprocess.py --raw_data ~/data/ttc-bus-delay-data-2024.csv --preprocessed_data ~/data --preprocessor_loc ~/results/models/
+```
+There are multiple command line arguments required to run the script successfully, and those must be provided as is to run the script, or to create folders
+
+## Running analysis script
+The analysis file also has multiple command line arguments which must me run from the scripts folder. 
+The command to run the analysis.py file is:
+
+```bash
+python analysis.py --data ~/data --preprocessor_from ~/results/models/delay_preprocessor.pickle --pipeline ~/results/models --viz ~/results/images/
+```
+
 ## Project Title
 **Toronto TTC Bus Delay Report**
 
