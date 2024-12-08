@@ -1,16 +1,17 @@
 ---
-title: TTC Bus Delay Report
-jupyter:
-  kernelspec:
-    display_name: 'Python [conda env:base] *'
-    language: python
-    name: conda-base-py
+title: "TTC Bus Delay Report"
+author: "Agam Sanghera, Ashita Diwan, Cheng Zhang, Yichun Liu"
+date: "7 Dec 2024"
+format:
+    pdf:
+        toc: true
+        toc-depth: 2
+execute:
+    echo: false
+    warning: false
+    message: false
+editor: source
 ---
-
-
-
-## Authors
-Agam Sanghera, Ashita Diwan, Cheng Zhang, Yichun Liu
 
 ## Summary
 
@@ -27,6 +28,7 @@ The data for this analysis was sourced from the [open.toronto.ca](http://open.to
 ## EDA Analysis
 
 We will first conduct an EDA analysis on the data. The steps include:
+
 1. **Loading and Preprocessing Data:** Handling missing values, converting timestamp data to day parts, and cleaning data fields irrelevant to our delay analysis.
 2. **Visualization:** Analyze the distribution of delays, identify top routes and locations with frequent delay incidents, and visualize delays based on day and incident type.
 
@@ -48,20 +50,22 @@ ttc = pd.read_csv('../data/ttc-bus-delay-data-2024.csv', parse_dates=['Date'])
 ```
 
 ```{python}
+#| label: tbl-ttc_head
+#| tbl-cap: Snippet of TTC bus delay data
 ttc.head()
 ```
+A snippet of the TTC bus delay data is shown in @tbl-ttc_head.
+
+This dataset has `{python} ttc.shape[0]` rows and `{python} ttc.shape[1]` columns.
 
 ```{python}
-# .shape shows up how big our data is
-print(f"This dataset has {ttc.shape[0]} rows and {ttc.shape[1]} columns")
-ttc.shape
-```
-
-```{python}
+#| label: tbl-ttc_info
+#| tbl-cap: Details of each column
 # .info tells us about the object type for each column
 # we can see 'Date' column was read as datetime object
 ttc.info()
 ```
+The details of each column are shown in @tbl-ttc_info.
 
 ```{python}
 # Let's also fix the 'Time' column
@@ -71,7 +75,7 @@ ttc1 = ttc.copy() # preserving the original
 ttc1['Time'] = pd.to_datetime(ttc['Time']).dt.time
 ```
 
-Now, let's split 'Date' column into 'Date_' and 'Month' (year is not needed since this is for 2024), and convert 'Time' into 'Hours' so it more useful in the analysis later on.
+Now, let's split 'Date' column into 'Date_' and 'Month' (year is not needed since this is for 2024), and convert 'Time' into 'Hours' so it more useful in the analysis later on. Let's drop the 'Date' and 'Time' column since they are no longer needed
 
 ```{python}
 ttc1['Date_'] = ttc1['Date'].dt.date
@@ -80,7 +84,6 @@ ttc1['Hour'] = ttc1['Time'].map(lambda x: x.hour) # used ChatGPT for this conver
 ```
 
 ```{python}
-# Let's drop the 'Date' and 'Time' column since they are no longer needed
 ttc1 = ttc1.drop(columns=['Date', 'Time'])
 ```
 
