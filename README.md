@@ -2,15 +2,18 @@
 
 # Milestone 3
 
+Start the Jupyter Notebook through Docker (see instructions at [below section](#docker-container-setup)).
+
 ## Running preprocesing script
 
-Use the following commands on the terminal in the docker container to run the scripts successfully
+In the Terminal window in Jupyter Notebook, run the following commands:
 
-1) Navigate to the scripts folder
+Navigate to the scripts folder
 
 ```bash
 cd scripts
 ```
+
 Run the preprocess.py script by using the following command in the terminal:
 ```bash
 python preprocess.py --raw_data ~/data/ttc-bus-delay-data-2024.csv --preprocessed_data ~/data --preprocessor_loc ~/results/models/
@@ -39,10 +42,16 @@ python analysis.py --data ~/data --preprocessor_from ~/results/models/delay_prep
 
 ## Generating analysis report through quarto document
 
-Start the Jupyter Notebook through Docker (See instructions at [below section](#docker-container-setup)). In the Terminal window in Jupyter Notebook, run the following command to generate the HTML report file.
+Start a new Terminal window in the Jupyter Notebook. Navigate to the reports folder
 
 ```bash
-quarto render reports/ttc_bus_delay_report.qmd --to html
+cd reports
+```
+
+Run the following command to generate the HTML report file.
+
+```bash
+quarto render ttc_bus_delay_report.qmd --to html
 ```
 
 The generated HTML file should now be available in the following folder:
