@@ -1,5 +1,58 @@
 # group04
 
+# Milestone 3
+
+## Running preprocesing script
+
+Use the following commands on the terminal in the docker container to run the scripts successfully
+
+1) Navigate to the scripts folder
+
+```bash
+cd scripts
+```
+Run the preprocess.py script by using the following command in the terminal:
+```bash
+python preprocess.py --raw_data ~/data/ttc-bus-delay-data-2024.csv --preprocessed_data ~/data --preprocessor_loc ~/results/models/
+```
+There are multiple command line arguments required to run the script successfully, and those must be provided as is to run the script, or to create folders
+
+## Running data validation script
+
+```bash
+python ttc_data_validation.py --input-path ../data/X_train.csv --output-path ../data/ttc-bus-delay-clean.csv
+```
+
+## Running eda script
+
+```bash
+python ttc_eda.py --input-path ../data/ttc-bus-delay-clean.csv --output-dir ../results/images
+```
+
+## Running analysis script
+The analysis file also has multiple command line arguments which must me run from the scripts folder. 
+The command to run the analysis.py file is:
+
+```bash
+python analysis.py --data ~/data --preprocessor_from ~/results/models/delay_preprocessor.pickle --pipeline ~/results/models --viz ~/results/images/
+```
+
+## Generating analysis report through quarto document
+
+Start the Jupyter Notebook through Docker (See instructions at [below section](#docker-container-setup)). In the Terminal window in Jupyter Notebook, run the following command to generate the HTML report file.
+
+```bash
+quarto render reports/ttc_bus_delay_report.qmd --to html
+```
+
+The generated HTML file should now be available in the following folder:
+
+```bash
+./reports/ttc_bus_delay_report.html
+```
+
+# Milestone 2
+
 ## Docker Container Setup
 
 ## Prerequisites
@@ -52,40 +105,7 @@ To stop the services, press `Ctrl+C` in the terminal where `docker-compose up` i
 docker-compose down
 ```
 
-## Running preprocesing script
-
-Use the following commands on the terminal in the docker container to run the scripts successfully
-
-1) Navigate to the scripts folder
-
-```bash
-cd scripts
-```
-Run the preprocess.py script by using the following command in the terminal:
-```bash
-python preprocess.py --raw_data ~/data/ttc-bus-delay-data-2024.csv --preprocessed_data ~/data --preprocessor_loc ~/results/models/
-```
-There are multiple command line arguments required to run the script successfully, and those must be provided as is to run the script, or to create folders
-
-## Running data validation script
-
-```bash
-python ttc_data_validation.py --input-path ../data/X_train.csv --output-path ../data/ttc-bus-delay-clean.csv
-```
-
-## Running eda script
-
-```bash
-python ttc_eda.py --input-path ../data/ttc-bus-delay-clean.csv --output-dir ../results/images
-```
-
-## Running analysis script
-The analysis file also has multiple command line arguments which must me run from the scripts folder. 
-The command to run the analysis.py file is:
-
-```bash
-python analysis.py --data ~/data --preprocessor_from ~/results/models/delay_preprocessor.pickle --pipeline ~/results/models --viz ~/results/images/
-```
+# Milestone 1
 
 ## Project Title
 **Toronto TTC Bus Delay Report**
