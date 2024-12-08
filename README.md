@@ -67,6 +67,18 @@ python preprocess.py --raw_data ~/data/ttc-bus-delay-data-2024.csv --preprocesse
 ```
 There are multiple command line arguments required to run the script successfully, and those must be provided as is to run the script, or to create folders
 
+## Running data validation script
+
+```bash
+python ttc_data_validation.py --input-path ../data/X_train.csv --output-path ../data/ttc-bus-delay-clean.csv
+```
+
+## Running eda script
+
+```bash
+python ttc_eda.py --input-path ../data/ttc-bus-delay-clean.csv --output-dir ../results/images
+```
+
 ## Running analysis script
 The analysis file also has multiple command line arguments which must me run from the scripts folder. 
 The command to run the analysis.py file is:
