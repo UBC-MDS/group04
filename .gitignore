@@ -12,6 +12,7 @@ __pycache__/
 .jupyter/lab/workspaces/default-37a8.jupyterlab-workspace
 .local/share/jupyter/nbsignatures.db
 # Distribution / packaging
+.Rhistory
 
 .Python
 build/
