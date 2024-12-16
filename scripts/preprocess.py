@@ -1,4 +1,5 @@
 # essential imports for pre processing
+import sys
 import os
 import click
 import pickle
@@ -16,6 +17,9 @@ from sklearn.compose import ColumnTransformer, make_column_selector
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression 
 from sklearn.model_selection import cross_validate, RandomizedSearchCV
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from src.split import split
+from src.preprocessing import preprocess
 import warnings
 warnings.filterwarnings(action='ignore')
 
@@ -63,34 +67,34 @@ def main(raw_data, preprocessed_data, preprocessor_loc, seed):
     ttc_lr["Min Delay"] = ttc_lr["Min Delay"].apply(lambda x: "Medium Delay" if type(x)== int and  x >10 and x<=20 else x)
     ttc_lr["Min Delay"] = ttc_lr["Min Delay"].apply(lambda x: "Long Delay" if type(x)== int and  x >=10 else x)
 
-    # Split targets from features
-    X = ttc_lr[["Route","Incident","Location","Day","Hour","Month"]]
-    y = ttc_lr['Min Delay']
-
     # Define feature types
     numeric_features=["Hour","Month"]
     categorical_features = ['Location', 'Route', 'Incident',"Day"]
 
     # Create transformer and preprocessing pipeline
-    preprocessor = ColumnTransformer(
-    transformers=[
-        ('num', StandardScaler(), numeric_features),
-        ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_features)
-    ]
-    )
-
-    # Split into test train sets and save to disk
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=123)
-    X_train.to_csv(os.path.join(preprocessed_data,'X_train.csv'),index=False)
-    y_train.to_csv(os.path.join(preprocessed_data,'y_train.csv'),index=False)
-    X_test.to_csv(os.path.join(preprocessed_data,'X_test.csv'),index=False)
-    y_test.to_csv(os.path.join(preprocessed_data,'y_test.csv'),index=False)
-    pickle.dump(preprocessor,open(os.path.join(preprocessor_loc,'delay_preprocessor.pickle'),'wb'))
-    preprocessor.fit(X_train)
-    train_processed=preprocessor.transform(X_train)
-    test_processed=preprocessor.transform(X_test)
-    pickle.dump(train_processed,open(os.path.join(preprocessed_data,'train_processed.pickle'),'wb'))
-    pickle.dump(test_processed,open(os.path.join(preprocessed_data,'test_processed.pickle'),'wb'))
+    # preprocessor = ColumnTransformer(
+    # transformers=[
+    #     ('num', StandardScaler(), numeric_features),
+    #     ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_features)
+    # ]
+    # )
+    split(ttc_lr,'Min Delay',preprocessed_data)
+    # X = ttc_lr[["Route","Incident","Location","Day","Hour","Month"]]
+    # y = ttc_lr['Min Delay']
+    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=123)
+    # X_train.to_csv(os.path.join(preprocessed_data,'X_train.csv'),index=False)
+    # y_train.to_csv(os.path.join(preprocessed_data,'y_train.csv'),index=False)
+    # X_test.to_csv(os.path.join(preprocessed_data,'X_test.csv'),index=False)
+    # y_test.to_csv(os.path.join(preprocessed_data,'y_test.csv'),index=False)
+    X_train=pd.read_csv(os.path.join(preprocessed_data,'X_train.csv'))
+    X_test=pd.read_csv(os.path.join(preprocessed_data,'X_test.csv'))
+    preprocess(X_train,X_test, numeric_features,categorical_features,preprocessor_loc)
+    # pickle.dump(preprocessor,open(os.path.join(preprocessor_loc,'delay_preprocessor.pickle'),'wb'))
+    # preprocessor.fit(X_train)
+    # train_processed=preprocessor.transform(X_train)
+    # test_processed=preprocessor.transform(X_test)
+    # pickle.dump(train_processed,open(os.path.join(preprocessed_data,'train_processed.pickle'),'wb'))
+    # pickle.dump(test_processed,open(os.path.join(preprocessed_data,'test_processed.pickle'),'wb'))
     
 
 
