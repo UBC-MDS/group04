@@ -71,30 +71,12 @@ def main(raw_data, preprocessed_data, preprocessor_loc, seed):
     numeric_features=["Hour","Month"]
     categorical_features = ['Location', 'Route', 'Incident',"Day"]
 
-    # Create transformer and preprocessing pipeline
-    # preprocessor = ColumnTransformer(
-    # transformers=[
-    #     ('num', StandardScaler(), numeric_features),
-    #     ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_features)
-    # ]
-    # )
     split(ttc_lr,'Min Delay',preprocessed_data)
-    # X = ttc_lr[["Route","Incident","Location","Day","Hour","Month"]]
-    # y = ttc_lr['Min Delay']
-    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=123)
-    # X_train.to_csv(os.path.join(preprocessed_data,'X_train.csv'),index=False)
-    # y_train.to_csv(os.path.join(preprocessed_data,'y_train.csv'),index=False)
-    # X_test.to_csv(os.path.join(preprocessed_data,'X_test.csv'),index=False)
-    # y_test.to_csv(os.path.join(preprocessed_data,'y_test.csv'),index=False)
+
     X_train=pd.read_csv(os.path.join(preprocessed_data,'X_train.csv'))
     X_test=pd.read_csv(os.path.join(preprocessed_data,'X_test.csv'))
     preprocess(X_train,X_test, numeric_features,categorical_features,preprocessor_loc)
-    # pickle.dump(preprocessor,open(os.path.join(preprocessor_loc,'delay_preprocessor.pickle'),'wb'))
-    # preprocessor.fit(X_train)
-    # train_processed=preprocessor.transform(X_train)
-    # test_processed=preprocessor.transform(X_test)
-    # pickle.dump(train_processed,open(os.path.join(preprocessed_data,'train_processed.pickle'),'wb'))
-    # pickle.dump(test_processed,open(os.path.join(preprocessed_data,'test_processed.pickle'),'wb'))
+
     
 
 
