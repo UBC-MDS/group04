@@ -30,7 +30,7 @@ def load_and_clean_data(file_path):
 # Other functions for your reference
 
 # """
-# 
+# ---modified and used this function:
 # def remove_outliers(data, column, min_val, max_val):
 #     """
 #     Remove rows where column values are outside min_val and max_val.
@@ -47,6 +47,7 @@ def load_and_clean_data(file_path):
 #                   "Long Delay" if x > 20 else x
 #     )
 #     return data
+# ---
 # 
 # def preprocess_and_split(data, target_column, numeric_features, categorical_features, test_size=0.2, random_state=123):
 #     """
