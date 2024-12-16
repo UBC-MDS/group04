@@ -1,4 +1,4 @@
-# src/tests/test_remove_outliers.py
+# tests/test_remove_outliers.py
 # References: Tiffany's Breast Cancer Predictor and ChatGPT were used as references
 
 
