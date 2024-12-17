@@ -4,7 +4,7 @@ all: report
 
 clean:
 	rm -rf results -r \
-    rm -rf reports -r \
+    rm -rf reports/ttc_bus_delay_report.html \
     rm -rf data/clean -r
 
 # Preprocess the data
@@ -28,4 +28,4 @@ analysis: eda
 
 # Generate the HTML report through quarto
 report: analysis
-	quarto render docs/index.qmd --to html
+	quarto render reports/ttc_bus_delay_report.qmd --to html
